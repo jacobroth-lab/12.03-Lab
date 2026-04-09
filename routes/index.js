@@ -35,22 +35,44 @@ router.post('/create', function (req, res, next) {
     }
 });
 
+router.post('/edit', function (req, res, next) {
+    const { id, task } = req.body;
+    
+    if (!task || task.trim() === "") {
+        return res.status(400).send('Task cannot be empty');
+    }
+
+    req.db.query('UPDATE todos SET task = ? WHERE id = ?;', [task, id], (err, results) => {
+        if (err) {
+            console.error('Error editing todo:', err);
+            return res.status(500).send('Error editing todo');
+        }
+        res.redirect('/');
+    });
+});
+
+router.post('/complete', function (req, res, next) {
+    const { id } = req.body;
+    
+    req.db.query('UPDATE todos SET completed = 1 WHERE id = ?;', [id], (err, results) => {
+        if (err) {
+            console.error('Error completing todo:', err);
+            return res.status(500).send('Error completing todo');
+        }
+        res.redirect('/');
+    });
+});
+
 router.post('/delete', function (req, res, next) {
     const { id } = req.body;
-    try {
       req.db.query('DELETE FROM todos WHERE id = ?;', [id], (err, results) => {
         if (err) {
           console.error('Error deleting todo:', err);
           return res.status(500).send('Error deleting todo');
         }
-        console.log('Todo deleted successfully:', results);
         // Redirect to the home page after deletion
         res.redirect('/');
     });
-    }catch (error) {
-        console.error('Error deleting todo:', error);
-        res.status(500).send('Error deleting todo:');
-    }
 });
 
 module.exports = router;
